@@ -27,9 +27,9 @@ print_help() {
     echo ""
     echo "Usage: $(basename $0) [-o arg] [-h]"
     echo "Options:"
-    echo "-a, --ac_url         URL of desired version of Autoconfig archive."
-    echo "-o, --output_dir     Absolute path to output directory."
-    echo "-h, --help           Usage info."
+    echo "-a, ac_url         URL of desired version of Autoconfig archive."
+    echo "-o, output_dir     Absolute path to output directory."
+    echo "-h, help           Usage info."
     echo ""
 }
 
@@ -43,10 +43,10 @@ while getopts 'o:h' flag; do
 done
 
 # Check validity of output_dir
-if $output_dir;
+if [ ! -z $output_dir ];
 then
     output_dir=$(pwd)
-elif (! test -f "$output_dir");
+elif [ ! -d "$output_dir" ];
 then
     echo "Error: ${output_dir} does not exist."
     exit 1
@@ -56,32 +56,54 @@ echo "Writing files to ${output_dir}"
 cd ${output_dir}
 
 # Get nlp engine files
-git clone https://github.com/VisualText/nlp-engine
+if [ ! -d nlp-engine ];
+then
+    git clone https://github.com/VisualText/nlp-engine
+fi
 cd nlp-engine
+git submodule update --init --recursive
 
 # Get AutoConfig
-if ! "$ac_url";
+if [ -z "$ac_url" ];
 then
-    ac_url = http://ftpmirror.gnu.org/autoconf-archive/autoconf-archive-2023.02.20.tar.xz
+    ac_url="http://ftpmirror.gnu.org/autoconf-archive/autoconf-archive-2023.02.20.tar.xz"
 fi
 
+echo "" 
+echo "Getting autoconfig from ${ac_url}"
+cd "${output_dir}"
 wget "$ac_url"
-compressed_ac_file=$(basename $ac_url)
+compressed_ac_file=$(basename -- "$ac_url")
 tar -xf "$compressed_ac_file"
-IFS='.' read -r -a unzipped_ac_file <<< "$compressed_ac_file"
-cd unzipped_ac_file
+
+unzipped_ac_file="${compressed_ac_file%%.tar.xz}"
+if [ -d $unzipped_ac_file ];
+then
+    cd $unzipped_ac_file
+else
+    echo "Error: ${unzipped_ac_file} does not exist."
+    exit 1
+fi
 
 # Get GNULib to handle AutoMake dependency, etc
+echo ""
 git clone https://git.savannah.gnu.org/git/gnulib.git
 
 # Build GNUlib
-cd gnulib
+echo ""
+echo "Building gnulib"
+./gnulib/gnulib-tool --import strdup
 ./configure prefix="$output_dir"
 make
 make install
 
+# Wait for make
+wait
+
 # Now that we have handled dependencies, build AutoConfig
-cd ..
+echo ""
+echo "Building autoconfig"
+cd ${output_dir}
 ./configure prefix="$output_dir"
 make
 make install
@@ -90,11 +112,10 @@ make install
 export ACLOCAL_PATH="$output_dir/share/aclocal"
 
 # Finally, set up vcpkg and build with cmake
-cd ../vcpkg
+cd "${output_dir}/nlp-engine/vcpkg"
 ./bootstrap-vcpkg.sh
 ./vcpkg install
-cd ..
-mkdir build
+cd "${output_dir}/nlp-engine"
 cd build
 cmake ..
 cmake --build . --config Debug -- -m
