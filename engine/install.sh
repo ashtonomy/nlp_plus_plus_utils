@@ -11,6 +11,9 @@
 # Tested on:
 # nlp-engine: v2.7.0
 
+# DEPRECATION WARNING
+echo "This script is deprecated.\n"
+
 # ADD MODULES.
 # Delete OpenSSL after adding cmake to avoid dependency errors
 module add gcc/9.5.0
