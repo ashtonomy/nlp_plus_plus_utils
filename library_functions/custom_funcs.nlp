@@ -1,0 +1,232 @@
+###############################################
+# FILE: custom_funcs
+# SUBJ: comment
+# AUTH: Ashton
+# CREATED: 2023-7-23 14:27:42
+# MODIFIED:
+###############################################
+
+@DECL
+
+# Concatenate
+# Concatenates two non-empty arrays
+#
+# Args: Two non-empty arrayd
+# Returns: concatenated array
+
+Concatenate(L("arr_1"), L("arr_2")) {
+    L("new_arr") = L("arr_1");
+
+    L("idx") = 0;
+    while (L("idx") < arraylength(L("arr_2"))) {
+        L("new_arr")[arraylength(L("new_arr"))] = L("arr_2")[L("idx")];
+        L("idx")++;
+    }
+
+    return L("new_arr");
+}
+
+# Swap
+# Swap elements at first and second indices in array
+# 
+# Args:
+#   L("arr") = Non-empty array 
+#   L("first_idx")  = Index of first element to swap
+#   L("second_idx") = Index of second element to swap
+#
+# Returns: Array with swapped elements
+# 
+# Note that indices must be < array len
+
+Swap(L("arr"), L("first_idx"), L("second_idx")) {
+    L("temp") = L("arr")[L("first_idx")];
+    L("arr")[L("first_idx")] = L("arr")[L("second_idx")];
+    L("arr")[L("second_idx")] = L("temp");
+
+    return L("arr");
+}
+
+
+# Quicksort wrapper to handle indices, since this can be a challenge.
+# Use QuickSortPartition for subarray
+QuickSort(L("arr")) {
+    if (arraylength(L("arr")) <= 1) {
+        return L("arr");
+    }
+    L("start") = 0;
+    L("end") = arraylength(L("arr")) - 1;
+    return QuickSortPartition(L("arr"), L("start"), L("end"));
+}
+
+# QuickSortPartition
+# Performs quicksort on array from <low> to <high>
+# 
+# Args:
+#   L("arr"):   Array to sort
+#   L("low"):   Starting index of array
+#   L("high"):  Upper index of array
+#
+# Returns: 
+#   Sorted array
+#
+# N.B. low and high must be >=0 and < array len
+
+QuickSortPartition(L("arr"), L("low"), L("high")) {
+
+    if (L("low") < L("high")) {
+        # Get pivot index
+        L("pivot") = L("arr")[L("high")];
+
+        L("i") = L("low") - 1;
+
+        L("j") = L("low");
+        while (L("j") < L("high")) {
+            if (L("arr")[L("j")] <= L("pivot")) {
+                L("i")++;
+
+                L("arr") = Swap(L("arr"), L("i"), L("j"));
+            }
+            L("j")++;
+        }
+
+        L("arr") = Swap(L("arr"), L("i")+1, L("high"));
+
+        L("pivot") = L("i") + 1;
+
+        # Sort each partition of array recursively
+        L("arr") = QuickSortPartition(L("arr"), L("low"), L("pivot")-1);
+        L("arr") = QuickSortPartition(L("arr"), L("pivot")+1, L("high"));
+        
+        # Return concatenated array
+        # L("sorted") = L("left_arr");
+        # L("sorted")[arraylength(L("sorted"))] = L("pivot");
+        # return ConcatArrays(L("sorted"), L("right_arr"));
+    }
+
+    return L("arr");
+}
+
+# Naive tokenization function
+GetTokens(L("str")) {
+    L("new_str");
+    L("str") = strsubst(L("str"), "n't", " not");
+    L("str") = strclean(L("str"));
+
+    L("i") = 0;
+    while (L("i") < strlength(L("str"))) {
+        L("char") = strchar(L("str"), L("i"));
+
+        L("char_to_add");
+        if (strisalpha(L("char")) || L("char") == " ") {
+            L("char_to_add") = L("char");
+        }
+        else {
+            L("char_to_add") = " ";
+        }
+
+        if (!L("new_str")) {
+            L("new_str") = L("char_to_add");
+        }
+        else{
+            L("new_str") = L("new_str") + L("char_to_add");
+        }
+        L("i")++;
+    }
+
+    L("tokens") = split(L("new_str"), " ");
+    L("return");
+    L("j") = 0;
+    "debug.txt" << arraylength(L("tokens")) << "\n";
+    "debug.txt" << L("new_str") << "\n";
+    "debug.txt" << L("str") << "\n";
+
+    while (L("j") < arraylength(L("tokens"))) {
+        L("this_str") = L("tokens")[L("j")];
+
+        if (L("this_str")) {    
+            L("this_str") = strclean(L("this_str"));
+            L("this_str") = strtolower(L("this_str"));
+            if ((strlength(L("this_str")) > 2) && (spellword(L("this_str")))) {
+                L("return")[arraylength(L("return"))] = stem(L("this_str"));
+            }
+        }
+        L("j")++;
+    }
+    
+    return L("return");
+}
+
+# GetUniqueWords
+# Args:
+#   L("str"): Input string to get words from
+#   
+# 
+# Should take parsetree node as well
+
+# GetUniqueStrWords(L("str")) {
+#     # Assumes non-tokenized string 
+#     L("str")
+
+#     if (L("vocab")) {
+#         for L("")
+
+#     }
+
+
+
+# # }
+
+# Binary Search
+# Args
+#   arr: sorted array in which to search
+BinarySearchPartition(L("arr"), L("low"), L("high"), L("val")) {
+    "binary.txt" << "low: " << L("low") << " high: " << L("high") << "\n";
+    if (L("low") > L("high")) {
+        return -1;
+    }
+    # if (L("low") == L("high")) {
+    #     if (L("arr")[L("low")] == L("val")) {
+    #         return L("low");
+    #     }
+    #     return -1;
+    # }
+    L("mid") = (L("high") + L("low")) / 2;
+    "binary.txt" << "mid: " << L("mid") << "\n";
+    if (L("arr")[L("mid")] == L("val")) {
+        return L("mid");
+    }
+    else if (L("val") < L("arr")[L("mid")]) {
+        L("high") = L("mid") - 1;
+        return BinarySearchPartition(L("arr"), L("low"), L("high"), L("val"));
+    }
+    else {
+        L("low") = L("mid") + 1;
+        return BinarySearchPartition(L("arr"), L("low"), L("high"), L("val"));
+    }
+
+}
+
+# Binary Search
+# Args
+#   arr: sorted array to search
+#   val: value to search for
+#  
+# Returns
+#   integer: -1 if not in array, otherwise idx in array
+
+BinarySearch(L("arr"), L("val")) {
+    L("len") = arraylength(L("arr"));
+    L("low") = 0;
+    if (L("len") == 1) {
+        if (L("arr")[L("low")] == L("val")) {
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    return BinarySearchPartition(L("arr"), L("low"), L("len")-1, L("val"));
+
+}
+
+@@DECL
