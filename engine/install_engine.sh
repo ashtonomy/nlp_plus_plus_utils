@@ -12,7 +12,7 @@ spack find # This should be empty
 spack install autoconf-archive
 spack install icu4c
 
-ac_archive=$(spack find autoconf_archive | grep -Eo "autoconf-archive@\S*")
+ac_archive=$(spack find autoconf-archive | grep -Eo "autoconf-archive@\S*")
 spack load $ac_archive
 
 icu=$(spack find icu4c | grep -Eo "icu4c@\S*")
@@ -29,8 +29,8 @@ cd vcpkg
 
 # 5. Build with cmake
 cd .. 
-cmake -DCMAKE_BUILD_TYPE=Debug build -S . 
--DCMAKE_TOOLCHAIN_FILE='./vcpkg/scripts/buildsystems/vcpkg.cmake'
+module add cmake/3.23.1-gcc/9.5.0 # Swap with desired version
+cmake -DCMAKE_BUILD_TYPE=Debug build -S . -DCMAKE_TOOLCHAIN_FILE='./vcpkg/scripts/buildsystems/vcpkg.cmake'
 cmake --build build/ --target all
 
 
