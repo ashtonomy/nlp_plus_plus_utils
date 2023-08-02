@@ -30,7 +30,7 @@ cd vcpkg
 # 5. Build with cmake
 cd .. 
 module add cmake/3.23.1-gcc/9.5.0 # Swap with desired version
-cmake -DCMAKE_BUILD_TYPE=Debug build -S . -DCMAKE_TOOLCHAIN_FILE='./vcpkg/scripts/buildsystems/vcpkg.cmake'
+cmake -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_TOOLCHAIN_FILE='./vcpkg/scripts/buildsystems/vcpkg.cmake'
 cmake --build build/ --target all
 
 
